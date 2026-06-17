@@ -68,6 +68,23 @@ export function InstanceEditorModal({
   const [weeklyMinutes, setWeeklyMinutes] = useState(
     instance ? String(weeklyCooldown.minutes) : "",
   );
+  const nextHourly = remainingParts(instance?.hourlyResetTimestamp ?? 0);
+  const nextWeekly = remainingParts(instance?.weeklyResetTimestamp ?? 0);
+  const [nextHourlyHours, setNextHourlyHours] = useState(
+    instance ? String(nextHourly.days * 24 + nextHourly.hours) : "",
+  );
+  const [nextHourlyMinutes, setNextHourlyMinutes] = useState(
+    instance ? String(nextHourly.minutes) : "",
+  );
+  const [nextWeeklyDays, setNextWeeklyDays] = useState(
+    instance ? String(nextWeekly.days) : "",
+  );
+  const [nextWeeklyHours, setNextWeeklyHours] = useState(
+    instance ? String(nextWeekly.hours) : "",
+  );
+  const [nextWeeklyMinutes, setNextWeeklyMinutes] = useState(
+    instance ? String(nextWeekly.minutes) : "",
+  );
   const [availability, setAvailability] = useState<QuotaFlag>(getAvailabilityFlag(instance));
   const [copied, setCopied] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -109,6 +126,8 @@ export function InstanceEditorModal({
     const now = Date.now();
     const hourlyMs = durationToMs(0, Math.max(Number(hourlyHours) || 0, 0), Math.max(Number(hourlyMinutes) || 0, 0));
     const weeklyMs = durationToMs(Math.max(Number(weeklyDays) || 0, 0), Math.max(Number(weeklyHours) || 0, 0), Math.max(Number(weeklyMinutes) || 0, 0));
+    const nextHourlyMs = durationToMs(0, Math.max(Number(nextHourlyHours) || 0, 0), Math.max(Number(nextHourlyMinutes) || 0, 0));
+    const nextWeeklyMs = durationToMs(Math.max(Number(nextWeeklyDays) || 0, 0), Math.max(Number(nextWeeklyHours) || 0, 0), Math.max(Number(nextWeeklyMinutes) || 0, 0));
 
     onSubmit(
       {
@@ -120,8 +139,8 @@ export function InstanceEditorModal({
         weeklyAllowance: weeklyAllowance.trim() || "Quota",
         hourlyCooldownMs: hourlyMs,
         weeklyCooldownMs: weeklyMs,
-        hourlyResetTimestamp: now + hourlyMs,
-        weeklyResetTimestamp: now + weeklyMs,
+        hourlyResetTimestamp: now + (nextHourlyMs > 0 ? nextHourlyMs : hourlyMs),
+        weeklyResetTimestamp: now + (nextWeeklyMs > 0 ? nextWeeklyMs : weeklyMs),
         exhausted: availability === "exhausted",
         weeklyExhausted: availability === "weekly_exhausted",
       },
@@ -245,74 +264,119 @@ export function InstanceEditorModal({
 
           {/* Reset windows */}
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            {/* Hourly reset window */}
+            {/* Hourly */}
             <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-              <p className="text-[13px] font-semibold text-white">Hourly Reset Window</p>
-              <p className="mt-0.5 text-[11px] text-slate-500">How often the hourly quota resets (e.g. 3h, 5h, 6h)</p>
-              <div className="mt-3 grid grid-cols-2 gap-3">
-                <label className="block">
-                  <span className="text-[11px] text-slate-500">Hours</span>
-                  <input
-                    type="number"
-                    min="0"
-                    value={hourlyHours}
-                    onChange={(event) => setHourlyHours(event.target.value)}
-                    placeholder="e.g. 5"
-                    className={`mt-1 ${numberClass}`}
-                  />
-                </label>
-                <label className="block">
-                  <span className="text-[11px] text-slate-500">Minutes</span>
-                  <input
-                    type="number"
-                    min="0"
-                    value={hourlyMinutes}
-                    onChange={(event) => setHourlyMinutes(event.target.value)}
-                    placeholder="0"
-                    className={`mt-1 ${numberClass}`}
-                  />
-                </label>
+              <p className="text-[13px] font-semibold text-white">Hourly Reset</p>
+              <p className="mt-0.5 text-[11px] text-slate-500">Cycle duration and time until next reset</p>
+              <div className="mt-3 space-y-3">
+                <div>
+                  <span className="text-[10px] font-medium uppercase tracking-widest text-slate-600">Window</span>
+                  <div className="mt-1 grid grid-cols-2 gap-2">
+                    <input
+                      type="number"
+                      min="0"
+                      value={hourlyHours}
+                      onChange={(event) => setHourlyHours(event.target.value)}
+                      placeholder="hours"
+                      className={numberClass}
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      value={hourlyMinutes}
+                      onChange={(event) => setHourlyMinutes(event.target.value)}
+                      placeholder="min"
+                      className={numberClass}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <span className="text-[10px] font-medium uppercase tracking-widest text-slate-600">Next reset in</span>
+                  <div className="mt-1 grid grid-cols-2 gap-2">
+                    <input
+                      type="number"
+                      min="0"
+                      value={nextHourlyHours}
+                      onChange={(event) => setNextHourlyHours(event.target.value)}
+                      placeholder="hours"
+                      className={numberClass}
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      value={nextHourlyMinutes}
+                      onChange={(event) => setNextHourlyMinutes(event.target.value)}
+                      placeholder="min"
+                      className={numberClass}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Weekly reset window */}
+            {/* Weekly */}
             <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-              <p className="text-[13px] font-semibold text-white">Weekly Reset Window</p>
-              <p className="mt-0.5 text-[11px] text-slate-500">How often the weekly quota resets</p>
-              <div className="mt-3 grid grid-cols-3 gap-3">
-                <label className="block">
-                  <span className="text-[11px] text-slate-500">Days</span>
-                  <input
-                    type="number"
-                    min="0"
-                    value={weeklyDays}
-                    onChange={(event) => setWeeklyDays(event.target.value)}
-                    placeholder="7"
-                    className={`mt-1 ${numberClass}`}
-                  />
-                </label>
-                <label className="block">
-                  <span className="text-[11px] text-slate-500">Hours</span>
-                  <input
-                    type="number"
-                    min="0"
-                    value={weeklyHours}
-                    onChange={(event) => setWeeklyHours(event.target.value)}
-                    placeholder="0"
-                    className={`mt-1 ${numberClass}`}
-                  />
-                </label>
-                <label className="block">
-                  <span className="text-[11px] text-slate-500">Minutes</span>
-                  <input
-                    type="number"
-                    min="0"
-                    value={weeklyMinutes}
-                    onChange={(event) => setWeeklyMinutes(event.target.value)}
-                    placeholder="0"
-                    className={`mt-1 ${numberClass}`}
-                  />
-                </label>
+              <p className="text-[13px] font-semibold text-white">Weekly Reset</p>
+              <p className="mt-0.5 text-[11px] text-slate-500">Cycle duration and time until next reset</p>
+              <div className="mt-3 space-y-3">
+                <div>
+                  <span className="text-[10px] font-medium uppercase tracking-widest text-slate-600">Window</span>
+                  <div className="mt-1 grid grid-cols-3 gap-2">
+                    <input
+                      type="number"
+                      min="0"
+                      value={weeklyDays}
+                      onChange={(event) => setWeeklyDays(event.target.value)}
+                      placeholder="days"
+                      className={numberClass}
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      value={weeklyHours}
+                      onChange={(event) => setWeeklyHours(event.target.value)}
+                      placeholder="hrs"
+                      className={numberClass}
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      value={weeklyMinutes}
+                      onChange={(event) => setWeeklyMinutes(event.target.value)}
+                      placeholder="min"
+                      className={numberClass}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <span className="text-[10px] font-medium uppercase tracking-widest text-slate-600">Next reset in</span>
+                  <div className="mt-1 grid grid-cols-3 gap-2">
+                    <input
+                      type="number"
+                      min="0"
+                      value={nextWeeklyDays}
+                      onChange={(event) => setNextWeeklyDays(event.target.value)}
+                      placeholder="days"
+                      className={numberClass}
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      value={nextWeeklyHours}
+                      onChange={(event) => setNextWeeklyHours(event.target.value)}
+                      placeholder="hrs"
+                      className={numberClass}
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      value={nextWeeklyMinutes}
+                      onChange={(event) => setNextWeeklyMinutes(event.target.value)}
+                      placeholder="min"
+                      className={numberClass}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
