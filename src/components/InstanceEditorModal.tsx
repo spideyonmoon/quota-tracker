@@ -65,27 +65,15 @@ export function InstanceEditorModal({
   };
 
   const applyHourlyPreset = (label: "+5 Hours" | "+24 Hours" | "+7 Days") => {
-    if (label === "+5 Hours") {
-      setHourlyHours(String((Number(hourlyHours) || 0) + 5));
-    }
-    if (label === "+24 Hours") {
-      setHourlyHours(String((Number(hourlyHours) || 0) + 24));
-    }
-    if (label === "+7 Days") {
-      setHourlyHours(String((Number(hourlyHours) || 0) + 24 * 7));
-    }
+    if (label === "+5 Hours") setHourlyHours(String((Number(hourlyHours) || 0) + 5));
+    if (label === "+24 Hours") setHourlyHours(String((Number(hourlyHours) || 0) + 24));
+    if (label === "+7 Days") setHourlyHours(String((Number(hourlyHours) || 0) + 168));
   };
 
   const applyWeeklyPreset = (label: "+5 Hours" | "+24 Hours" | "+7 Days") => {
-    if (label === "+5 Hours") {
-      setWeeklyHours(String((Number(weeklyHours) || 0) + 5));
-    }
-    if (label === "+24 Hours") {
-      setWeeklyHours(String((Number(weeklyHours) || 0) + 24));
-    }
-    if (label === "+7 Days") {
-      setWeeklyDays(String((Number(weeklyDays) || 0) + 7));
-    }
+    if (label === "+5 Hours") setWeeklyHours(String((Number(weeklyHours) || 0) + 5));
+    if (label === "+24 Hours") setWeeklyHours(String((Number(weeklyHours) || 0) + 24));
+    if (label === "+7 Days") setWeeklyDays(String((Number(weeklyDays) || 0) + 7));
   };
 
   const validate = (): boolean => {
@@ -122,19 +110,9 @@ export function InstanceEditorModal({
         hourlyAllowance: hourlyAllowance.trim() || "Quota",
         weeklyAllowance: weeklyAllowance.trim() || "Quota",
         hourlyResetTimestamp:
-          now +
-          durationToMs(
-            0,
-            Math.max(Number(hourlyHours) || 0, 0),
-            Math.max(Number(hourlyMinutes) || 0, 0),
-          ),
+          now + durationToMs(0, Math.max(Number(hourlyHours) || 0, 0), Math.max(Number(hourlyMinutes) || 0, 0)),
         weeklyResetTimestamp:
-          now +
-          durationToMs(
-            Math.max(Number(weeklyDays) || 0, 0),
-            Math.max(Number(weeklyHours) || 0, 0),
-            Math.max(Number(weeklyMinutes) || 0, 0),
-          ),
+          now + durationToMs(Math.max(Number(weeklyDays) || 0, 0), Math.max(Number(weeklyHours) || 0, 0), Math.max(Number(weeklyMinutes) || 0, 0)),
         exhausted: instance?.exhausted ?? false,
       },
       instance?.id,
@@ -143,249 +121,228 @@ export function InstanceEditorModal({
   };
 
   const inputClass = (hasError: boolean) =>
-    `w-full rounded-md border bg-slate-950 px-3 py-2 text-white placeholder:text-slate-500 outline-none transition ${
+    `w-full rounded-xl border bg-white/[0.03] px-4 py-2.5 text-[13px] text-white placeholder:text-slate-600 outline-none transition-all duration-200 ${
       hasError
-        ? "border-rose-500/60 focus:border-rose-400"
-        : "border-slate-700 focus:border-cyan-400"
+        ? "border-rose-500/40 focus:border-rose-400/60 focus:shadow-[0_0_0_1px_rgba(244,63,94,0.2)]"
+        : "border-white/[0.08] focus:border-cyan-400/40 focus:bg-white/[0.05] focus:shadow-[0_0_0_1px_rgba(34,211,238,0.15)]"
     }`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm">
-      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg border border-slate-800 bg-slate-900 p-5 shadow-2xl shadow-black/40">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 animate-backdrop">
+      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-white/[0.08] bg-slate-900/95 p-6 shadow-2xl shadow-black/50 backdrop-blur-xl">
+        {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <h2 className="truncate text-lg font-semibold text-white">
-              {mode === "add" ? "Add Instance" : "Edit Instance"}
+            <h2 className="text-lg font-bold tracking-tight text-white">
+              {mode === "add" ? "New Instance" : "Edit Instance"}
             </h2>
-            <p className="mt-1 text-sm text-slate-400">
-              Save the account details, copy block, and reset windows.
+            <p className="mt-1 text-[13px] text-slate-500">
+              Configure account details, config block, and reset windows.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md px-3 py-2 text-sm font-semibold text-slate-400 hover:bg-slate-800 hover:text-white"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-slate-400 transition-all duration-200 hover:border-white/[0.15] hover:bg-white/[0.06] hover:text-white"
             aria-label="Close modal"
           >
-            X
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-5 space-y-5">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+          {/* Basic fields */}
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <div>
+              <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-widest text-slate-500">Name</label>
               <input
                 value={name}
-                onChange={(event) => {
-                  setName(event.target.value);
-                  clearError("name");
-                }}
-                placeholder="Name"
+                onChange={(event) => { setName(event.target.value); clearError("name"); }}
+                placeholder="e.g. OpenAI Account 1"
                 className={inputClass(!!errors.name)}
               />
-              {errors.name && (
-                <p className="mt-1.5 text-xs text-rose-400/90">{errors.name}</p>
-              )}
+              {errors.name && <p className="mt-1.5 text-[11px] text-rose-400/80">{errors.name}</p>}
             </div>
             <div>
+              <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-widest text-slate-500">Website</label>
               <input
                 value={website}
-                onChange={(event) => {
-                  setWebsite(event.target.value);
-                  clearError("website");
-                }}
-                placeholder="Website"
+                onChange={(event) => { setWebsite(event.target.value); clearError("website"); }}
+                placeholder="https://platform.openai.com"
                 className={inputClass(!!errors.website)}
               />
-              {errors.website && (
-                <p className="mt-1.5 text-xs text-rose-400/90">{errors.website}</p>
-              )}
+              {errors.website && <p className="mt-1.5 text-[11px] text-rose-400/80">{errors.website}</p>}
             </div>
-            <input
-              value={accountLabel}
-              onChange={(event) => setAccountLabel(event.target.value)}
-              placeholder="Account label"
-              className={inputClass(false)}
-            />
-            <input
-              value={hourlyAllowance}
-              onChange={(event) => setHourlyAllowance(event.target.value)}
-              placeholder="Hourly allowance"
-              className={inputClass(false)}
-            />
-            <input
-              value={weeklyAllowance}
-              onChange={(event) => setWeeklyAllowance(event.target.value)}
-              placeholder="Weekly allowance"
-              className={inputClass(false)}
-            />
+            <div>
+              <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-widest text-slate-500">Account Label</label>
+              <input
+                value={accountLabel}
+                onChange={(event) => setAccountLabel(event.target.value)}
+                placeholder="Optional"
+                className={inputClass(false)}
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-widest text-slate-500">Hourly Allowance</label>
+              <input
+                value={hourlyAllowance}
+                onChange={(event) => setHourlyAllowance(event.target.value)}
+                placeholder="e.g. 100 RPM"
+                className={inputClass(false)}
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-widest text-slate-500">Weekly Allowance</label>
+              <input
+                value={weeklyAllowance}
+                onChange={(event) => setWeeklyAllowance(event.target.value)}
+                placeholder="e.g. 10K requests"
+                className={inputClass(false)}
+              />
+            </div>
           </div>
 
+          {/* Config block */}
           <div>
+            <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-widest text-slate-500">Config Block</label>
             <textarea
               value={configBlock}
-              onChange={(event) => {
-                setConfigBlock(event.target.value);
-                clearError("configBlock");
-              }}
-              placeholder="Config block"
+              onChange={(event) => { setConfigBlock(event.target.value); clearError("configBlock"); }}
+              placeholder="Paste your API key or config here..."
               rows={5}
-              className={`w-full resize-y rounded-md border bg-slate-950 px-3 py-2 font-mono text-sm text-white placeholder:text-slate-500 outline-none transition ${
+              className={`w-full resize-y rounded-xl border bg-white/[0.03] px-4 py-3 font-mono text-[13px] text-white placeholder:text-slate-700 outline-none transition-all duration-200 ${
                 errors.configBlock
-                  ? "border-rose-500/60 focus:border-rose-400"
-                  : "border-slate-700 focus:border-cyan-400"
+                  ? "border-rose-500/40 focus:border-rose-400/60"
+                  : "border-white/[0.08] focus:border-cyan-400/40 focus:bg-white/[0.05]"
               }`}
             />
-            {errors.configBlock && (
-              <p className="mt-1.5 text-xs text-rose-400/90">{errors.configBlock}</p>
-            )}
+            {errors.configBlock && <p className="mt-1.5 text-[11px] text-rose-400/80">{errors.configBlock}</p>}
           </div>
 
+          {/* Reset windows */}
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <div className="rounded-md border border-slate-800 bg-slate-950/60 p-4">
+            {/* Hourly reset */}
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold text-white">
-                  Hourly reset window
-                </p>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => applyHourlyPreset("+5 Hours")}
-                    className="rounded-md border border-slate-700 px-2 py-1 text-xs font-semibold text-slate-200 hover:bg-slate-800"
-                  >
-                    +5h
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => applyHourlyPreset("+24 Hours")}
-                    className="rounded-md border border-slate-700 px-2 py-1 text-xs font-semibold text-slate-200 hover:bg-slate-800"
-                  >
-                    +24h
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => applyHourlyPreset("+7 Days")}
-                    className="rounded-md border border-slate-700 px-2 py-1 text-xs font-semibold text-slate-200 hover:bg-slate-800"
-                  >
-                    +7d
-                  </button>
+                <p className="text-[13px] font-semibold text-white">Hourly Reset</p>
+                <div className="flex gap-1.5">
+                  {[["+5 Hours", "+5h"], ["+24 Hours", "+24h"], ["+7 Days", "+7d"]].map(([label, display]) => (
+                    <button
+                      key={label}
+                      type="button"
+                      onClick={() => applyHourlyPreset(label as "+5 Hours" | "+24 Hours" | "+7 Days")}
+                      className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-[11px] font-semibold text-slate-400 transition-all duration-200 hover:border-white/[0.15] hover:bg-white/[0.06] hover:text-white"
+                    >
+                      {display}
+                    </button>
+                  ))}
                 </div>
               </div>
               <div className="mt-3 grid grid-cols-2 gap-3">
                 <label className="block">
-                  <span className="text-xs text-slate-400">Hours</span>
+                  <span className="text-[11px] text-slate-500">Hours</span>
                   <input
                     type="number"
                     min="0"
                     value={hourlyHours}
                     onChange={(event) => setHourlyHours(event.target.value)}
-                    className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-white outline-none focus:border-cyan-400"
+                    className="input-premium mt-1 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[13px] text-white outline-none transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05]"
                   />
                 </label>
                 <label className="block">
-                  <span className="text-xs text-slate-400">Minutes</span>
+                  <span className="text-[11px] text-slate-500">Minutes</span>
                   <input
                     type="number"
                     min="0"
                     value={hourlyMinutes}
                     onChange={(event) => setHourlyMinutes(event.target.value)}
-                    className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-white outline-none focus:border-cyan-400"
+                    className="input-premium mt-1 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[13px] text-white outline-none transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05]"
                   />
                 </label>
               </div>
             </div>
 
-            <div className="rounded-md border border-slate-800 bg-slate-950/60 p-4">
+            {/* Weekly reset */}
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold text-white">
-                  Weekly reset window
-                </p>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => applyWeeklyPreset("+5 Hours")}
-                    className="rounded-md border border-slate-700 px-2 py-1 text-xs font-semibold text-slate-200 hover:bg-slate-800"
-                  >
-                    +5h
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => applyWeeklyPreset("+24 Hours")}
-                    className="rounded-md border border-slate-700 px-2 py-1 text-xs font-semibold text-slate-200 hover:bg-slate-800"
-                  >
-                    +24h
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => applyWeeklyPreset("+7 Days")}
-                    className="rounded-md border border-slate-700 px-2 py-1 text-xs font-semibold text-slate-200 hover:bg-slate-800"
-                  >
-                    +7d
-                  </button>
+                <p className="text-[13px] font-semibold text-white">Weekly Reset</p>
+                <div className="flex gap-1.5">
+                  {[["+5 Hours", "+5h"], ["+24 Hours", "+24h"], ["+7 Days", "+7d"]].map(([label, display]) => (
+                    <button
+                      key={label}
+                      type="button"
+                      onClick={() => applyWeeklyPreset(label as "+5 Hours" | "+24 Hours" | "+7 Days")}
+                      className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-[11px] font-semibold text-slate-400 transition-all duration-200 hover:border-white/[0.15] hover:bg-white/[0.06] hover:text-white"
+                    >
+                      {display}
+                    </button>
+                  ))}
                 </div>
               </div>
               <div className="mt-3 grid grid-cols-3 gap-3">
                 <label className="block">
-                  <span className="text-xs text-slate-400">Days</span>
+                  <span className="text-[11px] text-slate-500">Days</span>
                   <input
                     type="number"
                     min="0"
                     value={weeklyDays}
                     onChange={(event) => setWeeklyDays(event.target.value)}
-                    className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-white outline-none focus:border-cyan-400"
+                    className="input-premium mt-1 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[13px] text-white outline-none transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05]"
                   />
                 </label>
                 <label className="block">
-                  <span className="text-xs text-slate-400">Hours</span>
+                  <span className="text-[11px] text-slate-500">Hours</span>
                   <input
                     type="number"
                     min="0"
                     value={weeklyHours}
                     onChange={(event) => setWeeklyHours(event.target.value)}
-                    className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-white outline-none focus:border-cyan-400"
+                    className="input-premium mt-1 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[13px] text-white outline-none transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05]"
                   />
                 </label>
                 <label className="block">
-                  <span className="text-xs text-slate-400">Minutes</span>
+                  <span className="text-[11px] text-slate-500">Minutes</span>
                   <input
                     type="number"
                     min="0"
                     value={weeklyMinutes}
                     onChange={(event) => setWeeklyMinutes(event.target.value)}
-                    className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-white outline-none focus:border-cyan-400"
+                    className="input-premium mt-1 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[13px] text-white outline-none transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05]"
                   />
                 </label>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-slate-800 bg-slate-950/60 px-4 py-3">
+          {/* Copy block */}
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3">
             <div>
-              <p className="text-sm font-semibold text-white">Copy block</p>
-              <p className="text-xs text-slate-400">
-                Write the current config block to the clipboard.
-              </p>
+              <p className="text-[13px] font-semibold text-white">Copy Block</p>
+              <p className="text-[11px] text-slate-500">Copy the current config to clipboard</p>
             </div>
             <button
               type="button"
               onClick={handleCopy}
-              className="rounded-md border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-800"
+              className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-[13px] font-medium text-slate-300 transition-all duration-200 hover:border-white/[0.15] hover:bg-white/[0.06] hover:text-white"
             >
               {copied ? "Copied!" : "Copy"}
             </button>
           </div>
 
-          <div className="flex justify-end gap-2 border-t border-slate-800 pt-4">
+          {/* Actions */}
+          <div className="flex justify-end gap-2 border-t border-white/[0.06] pt-5">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md px-4 py-2 text-sm font-semibold text-slate-300 hover:bg-slate-800"
+              className="rounded-xl px-5 py-2.5 text-[13px] font-medium text-slate-400 transition-colors hover:text-white"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="rounded-md bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-300"
+              className="rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 px-6 py-2.5 text-[13px] font-semibold text-white shadow-lg shadow-cyan-500/20 transition-all duration-200 hover:from-cyan-400 hover:to-blue-400"
             >
               Save
             </button>

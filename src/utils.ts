@@ -88,20 +88,23 @@ export function statusStyles(status: InstanceStatus) {
     case "READY":
       return {
         border: "border-l-emerald-400",
+        glow: "shadow-[inset_0_1px_0_0_rgba(52,211,153,0.1),0_0_30px_-8px_rgba(52,211,153,0.15)]",
         badge: "bg-emerald-400/10 text-emerald-300 ring-emerald-400/20",
-        button: "bg-emerald-500 text-slate-950 hover:bg-emerald-400",
+        button: "bg-gradient-to-r from-emerald-500 to-emerald-400 text-slate-950 hover:from-emerald-400 hover:to-emerald-300 shadow-lg shadow-emerald-500/20",
       };
     case "SOON":
       return {
-        border: "border-l-yellow-400",
-        badge: "bg-yellow-400/10 text-yellow-200 ring-yellow-400/20",
-        button: "bg-yellow-400 text-slate-950 hover:bg-yellow-300",
+        border: "border-l-amber-400",
+        glow: "shadow-[inset_0_1px_0_0_rgba(251,191,36,0.1),0_0_30px_-8px_rgba(251,191,36,0.12)]",
+        badge: "bg-amber-400/10 text-amber-300 ring-amber-400/20",
+        button: "bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 hover:from-amber-400 hover:to-amber-300 shadow-lg shadow-amber-500/20",
       };
     case "COOLING":
       return {
-        border: "border-l-slate-500",
+        border: "border-l-slate-600",
+        glow: "",
         badge: "bg-slate-500/10 text-slate-300 ring-slate-400/20",
-        button: "bg-slate-700 text-slate-100 hover:bg-slate-600",
+        button: "bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700",
       };
   }
 }

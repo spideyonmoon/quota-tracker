@@ -93,81 +93,102 @@ export default function App() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="border-b border-slate-900 bg-slate-950/95">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-5 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+    <main className="min-h-screen bg-[#030712] text-slate-100">
+      {/* Header with mesh gradient */}
+      <div className="relative border-b border-white/[0.06]">
+        <div className="mesh-gradient absolute inset-0" />
+        <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-8 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
             <div className="max-w-2xl">
-              <h1 className="mt-2 text-3xl font-bold text-white">
-                Quota Tracking Dashboard
-              </h1>
-              <p className="mt-2 text-sm leading-6 text-slate-400">
-                Track third-party API accounts, store each config block, and
-                mark an instance exhausted when you use it up.
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 shadow-lg shadow-cyan-500/20">
+                  <svg className="h-4.5 w-4.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <h1 className="text-2xl font-bold tracking-tight text-white">
+                  Quota Tracker
+                </h1>
+              </div>
+              <p className="mt-2.5 text-[13px] leading-relaxed text-slate-500">
+                Track third-party API quota windows across accounts.
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="rounded-lg border border-slate-800 bg-slate-900 px-4 py-3">
-                <p className="text-xs uppercase tracking-wide text-slate-500">
+            <div className="flex flex-wrap items-center gap-2.5">
+              {/* Instance count */}
+              <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-2.5 backdrop-blur-sm">
+                <p className="text-[10px] font-medium uppercase tracking-widest text-slate-500">
                   Tracked
                 </p>
-                <p className="mt-1 text-sm font-semibold text-white">
-                  {instances.length} instances
+                <p className="mt-0.5 text-sm font-bold text-white">
+                  {instances.length}
                 </p>
               </div>
+
+              {/* Mark All Available */}
               {hasExhausted && (
                 <button
                   type="button"
                   onClick={markAllAvailable}
-                  className="inline-flex min-h-11 items-center justify-center rounded-md border border-emerald-700 px-4 py-2 text-sm font-semibold text-emerald-200 transition hover:bg-emerald-950/40"
+                  className="inline-flex min-h-10 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/[0.08] px-4 py-2 text-[13px] font-semibold text-emerald-300 transition-all duration-200 hover:border-emerald-500/30 hover:bg-emerald-500/15"
                 >
-                  Mark All Available
+                  Reset All
                 </button>
               )}
+
+              {/* Import */}
               <button
                 type="button"
                 onClick={() => setShowImport(true)}
-                className="inline-flex min-h-11 items-center justify-center rounded-md border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-slate-500 hover:bg-slate-800"
+                className="inline-flex min-h-10 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-[13px] font-medium text-slate-300 transition-all duration-200 hover:border-white/[0.15] hover:bg-white/[0.06] hover:text-white"
               >
                 Import
               </button>
+
+              {/* Export */}
               <div className="relative">
                 <button
                   type="button"
                   onClick={handleExport}
-                  className="inline-flex min-h-11 items-center justify-center rounded-md border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-slate-500 hover:bg-slate-800"
+                  className="inline-flex min-h-10 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-[13px] font-medium text-slate-300 transition-all duration-200 hover:border-white/[0.15] hover:bg-white/[0.06] hover:text-white"
                 >
                   {exportCopied ? "Copied!" : "Export"}
                 </button>
                 <button
                   type="button"
                   onClick={handleExportFile}
-                  className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-[10px] text-slate-400 hover:bg-slate-700 hover:text-white"
+                  className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full border border-white/[0.1] bg-slate-800 text-[10px] text-slate-400 transition-colors hover:bg-slate-700 hover:text-white"
                   title="Download as file"
                 >
                   ↓
                 </button>
               </div>
+
+              {/* Add Instance */}
               <button
                 type="button"
                 onClick={() => setEditorState({ mode: "add", instance: null })}
-                className="inline-flex min-h-11 items-center justify-center rounded-md bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-300"
+                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 px-5 py-2 text-[13px] font-semibold text-white shadow-lg shadow-cyan-500/20 transition-all duration-200 hover:from-cyan-400 hover:to-blue-400 hover:shadow-xl hover:shadow-cyan-500/25"
               >
-                Add Instance
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Add
               </button>
             </div>
           </div>
 
+          {/* Search */}
           {instances.length > 0 && (
             <div className="relative">
               <input
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Search by name, website, label..."
-                className="w-full rounded-md border border-slate-800 bg-slate-900 px-4 py-2.5 pl-10 text-sm text-white placeholder:text-slate-500 outline-none focus:border-cyan-400/50"
+                placeholder="Filter instances..."
+                className="input-premium w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 pl-10 text-[13px] text-white placeholder:text-slate-600 outline-none backdrop-blur-sm transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05]"
               />
               <svg
-                className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+                className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -183,20 +204,10 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 transition-colors hover:text-slate-300"
                 >
-                  <svg
-                    className="h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               )}
@@ -205,7 +216,8 @@ export default function App() {
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+      {/* Grid */}
+      <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {filteredInstances.length > 0 ? (
             filteredInstances.map((instance) => (
@@ -219,12 +231,20 @@ export default function App() {
               />
             ))
           ) : instances.length > 0 && searchQuery ? (
-            <div className="rounded-lg border border-dashed border-slate-700 bg-slate-900/40 p-10 text-center text-slate-400 lg:col-span-2">
-              No instances match "{searchQuery}"
+            <div className="rounded-2xl border border-dashed border-white/[0.08] bg-white/[0.02] p-12 text-center text-slate-500 lg:col-span-2">
+              <svg className="mx-auto h-8 w-8 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+              </svg>
+              <p className="mt-3 text-[13px]">No instances match "{searchQuery}"</p>
             </div>
           ) : (
-            <div className="rounded-lg border border-dashed border-slate-700 bg-slate-900/40 p-10 text-center text-slate-400 lg:col-span-2">
-              Add your first instance to start tracking quota windows.
+            <div className="rounded-2xl border border-dashed border-white/[0.08] bg-white/[0.02] p-12 text-center text-slate-500 lg:col-span-2">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.03]">
+                <svg className="h-6 w-6 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+              </div>
+              <p className="mt-4 text-[13px]">Add your first instance to start tracking</p>
             </div>
           )}
         </section>
@@ -240,7 +260,6 @@ export default function App() {
               addInstance(payload);
               return;
             }
-
             if (existingId) {
               updateInstance(existingId, payload);
             }
@@ -262,11 +281,11 @@ export default function App() {
       ) : null}
 
       {showImport ? (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-lg border border-slate-800 bg-slate-900 p-6 shadow-2xl shadow-black/40">
-            <h3 className="text-lg font-semibold text-white">Import Instances</h3>
-            <p className="mt-2 text-sm text-slate-400">
-              Paste exported JSON or load a file to import instances.
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 animate-backdrop">
+          <div className="w-full max-w-lg rounded-2xl border border-white/[0.08] bg-slate-900/95 p-6 shadow-2xl shadow-black/50 backdrop-blur-xl">
+            <h3 className="text-lg font-bold tracking-tight text-white">Import Instances</h3>
+            <p className="mt-1.5 text-[13px] text-slate-500">
+              Paste exported JSON or load a file.
             </p>
             <div className="mt-4">
               <input
@@ -279,7 +298,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="rounded-md border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-800"
+                className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-[13px] font-medium text-slate-300 transition-all duration-200 hover:border-white/[0.15] hover:bg-white/[0.06] hover:text-white"
               >
                 Load JSON File
               </button>
@@ -292,14 +311,14 @@ export default function App() {
               }}
               placeholder='[{"name": "...", "website": "...", ...}]'
               rows={10}
-              className="mt-4 w-full resize-y rounded-md border border-slate-700 bg-slate-950 px-3 py-2 font-mono text-sm text-white placeholder:text-slate-500 outline-none focus:border-cyan-400"
+              className="input-premium mt-4 w-full resize-y rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 font-mono text-[13px] text-white placeholder:text-slate-700 outline-none transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05]"
             />
             {importError && (
-              <p className="mt-2 text-sm text-rose-400/90">
-                Invalid JSON. Please check the format and try again.
+              <p className="mt-2 text-[13px] text-rose-400/80">
+                Invalid JSON. Please check the format.
               </p>
             )}
-            <div className="mt-4 flex justify-end gap-2">
+            <div className="mt-5 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => {
@@ -307,7 +326,7 @@ export default function App() {
                   setImportText("");
                   setImportError(false);
                 }}
-                className="rounded-md px-4 py-2 text-sm font-semibold text-slate-300 hover:bg-slate-800"
+                className="rounded-xl px-4 py-2 text-[13px] font-medium text-slate-400 transition-colors hover:text-white"
               >
                 Cancel
               </button>
@@ -315,7 +334,7 @@ export default function App() {
                 type="button"
                 onClick={handleImportSubmit}
                 disabled={!importText.trim()}
-                className="rounded-md bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-300 disabled:opacity-50"
+                className="rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 px-5 py-2 text-[13px] font-semibold text-white shadow-lg shadow-cyan-500/20 transition-all duration-200 hover:from-cyan-400 hover:to-blue-400 disabled:opacity-40"
               >
                 Import
               </button>
