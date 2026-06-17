@@ -116,7 +116,7 @@ export default function App() {
             </div>
             <div className="flex flex-wrap items-center gap-2.5">
               {/* Instance count */}
-              <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-2.5 backdrop-blur-sm">
+              <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-2.5">
                 <p className="text-[10px] font-medium uppercase tracking-widest text-slate-500">
                   Tracked
                 </p>
@@ -185,7 +185,7 @@ export default function App() {
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Filter instances..."
-                className="input-premium w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 pl-10 text-[13px] text-white placeholder:text-slate-600 outline-none backdrop-blur-sm transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05]"
+                className="input-premium w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 pl-10 text-[13px] text-white placeholder:text-slate-600 outline-none transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05]"
               />
               <svg
                 className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-600"
@@ -281,8 +281,8 @@ export default function App() {
       ) : null}
 
       {showImport ? (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 animate-backdrop">
-          <div className="w-full max-w-lg rounded-2xl border border-white/[0.08] bg-slate-900/95 p-6 shadow-2xl shadow-black/50 backdrop-blur-xl">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-lg rounded-2xl border border-white/[0.08] bg-slate-900 p-6 shadow-2xl shadow-black/50">
             <h3 className="text-lg font-bold tracking-tight text-white">Import Instances</h3>
             <p className="mt-1.5 text-[13px] text-slate-500">
               Paste exported JSON or load a file.
