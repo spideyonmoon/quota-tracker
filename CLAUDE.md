@@ -31,14 +31,14 @@ Use `npm run build` before committing meaningful changes.
 src/
   main.tsx              # React entry point
   App.tsx               # Root component, layout, header, search, import/export
-  index.css             # Tailwind import, base styles, mesh gradient
-  types.ts              # Instance and InstanceStatus types
+  index.css             # Tailwind import, base styles, mesh gradient, select styling
+  types.ts              # Instance, InstanceStatus, QuotaFlag types
   utils.ts              # Status logic, sorting, filtering, time formatting, durations
   hooks/
-    useInstances.ts     # CRUD, localStorage persistence, export/import, duplicate
+    useInstances.ts     # CRUD, localStorage persistence, export/import, duplicate, auto-renew
   components/
-    InstanceCard.tsx     # Individual instance display with actions
-    InstanceEditorModal.tsx  # Add/edit form with validation
+    InstanceCard.tsx     # Individual instance display with status dropdown and actions
+    InstanceEditorModal.tsx  # Add/edit form with cooldown duration fields
     ConfirmDialog.tsx    # Delete confirmation dialog
 ```
 
@@ -64,24 +64,39 @@ Fields:
 - `configBlock`
 - `hourlyAllowance` — display label for the hourly quota (e.g. "100 RPM")
 - `weeklyAllowance` — display label for the weekly quota (e.g. "10K requests")
-- `hourlyResetTimestamp` — epoch ms for hourly window reset
-- `weeklyResetTimestamp` — epoch ms for weekly window reset
-- `exhausted` — manual toggle
+- `hourlyCooldownMs` — duration in ms of the hourly cooldown cycle
+- `weeklyCooldownMs` — duration in ms of the weekly cooldown cycle
+- `hourlyResetTimestamp` — epoch ms for hourly window reset (auto-restarts from cooldown)
+- `weeklyResetTimestamp` — epoch ms for weekly window reset (auto-restarts from cooldown)
+- `exhausted` — true when hourly quota is spent and cooldown is active
+- `weeklyExhausted` — true when weekly quota is spent and cooldown is active
+
+A `quota-tracker.demo-seen` key prevents the demo instance from re-seeding after deletion.
 
 ## Behavior Notes
 
 - Countdown values are calculated from absolute epoch timestamps.
 - The app re-renders every 60 seconds so countdown text updates.
-- Marking an instance `exhausted` is manual via the clickable status badge.
-- An exhausted instance automatically becomes available again when both reset timestamps are in the past.
+- **Auto-restart cooldowns**: when a timer expires, it automatically restarts from the cooldown duration. The app never stays in "Ready" — it cycles indefinitely.
+- **Status dropdown**: each card has a dropdown (`<select>`) with three states — Available (emerald), Exhausted (amber), Weekly Exhausted (cyan). Selecting Exhausted/Weekly Exhausted sets the flag and starts the corresponding cooldown timer.
+- When a cooldown expires, `exhausted`/`weeklyExhausted` flags are cleared automatically by `normalizeInstance`.
 - Sorting order: READY instances first, then available instances by nearest reset, exhausted instances last.
 - The `Use` button copies `configBlock` to the clipboard.
 - Search filters by name, website, account label, or allowance labels.
 - Export copies JSON to clipboard or downloads as `.json` file.
 - Import accepts pasted JSON or file upload.
 - Duplicate creates a copy with "(copy)" appended to the name.
-- "Reset All" appears when any instance is exhausted and clears all exhausted flags.
+- **Demo instance**: first-time visitors (no localStorage data) get a pre-seeded "OpenAI GPT-4o" instance in READY state so the app feels alive immediately.
 - Delete requires confirmation via a dialog.
+
+## Mobile Support
+
+- Viewport meta tag with `viewport-fit=cover` for notch devices.
+- PWA meta tags: `theme-color`, `apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style`.
+- Touch CSS: `touch-action: manipulation` (prevents double-tap zoom), `-webkit-tap-highlight-color: transparent`, `overscroll-behavior: none`.
+- Tailwind responsive breakpoints: `grid-cols-1 lg:grid-cols-2` for card grid, `grid-cols-2 sm:grid-cols-4` for action buttons, `grid-cols-1 md:grid-cols-2` for form fields.
+- All buttons have `min-h-10` (40px) touch targets.
+- No `backdrop-blur` — deliberate performance choice for mobile.
 
 ## Deployment
 
@@ -108,17 +123,18 @@ GitHub Pages settings should be:
 - No `backdrop-blur` on any element (GPU-heavy, slow on mobile).
 - No CSS keyframe animations — only `transition-all duration-150` on hover states.
 - No gradient overlay divs on cards — keeps DOM minimal.
-- CSS is ~33KB (6KB gzipped). JS is ~222KB (67KB gzipped).
+- CSS is ~36KB (7KB gzipped). JS is ~223KB (67KB gzipped).
 
 ## Design Language
 
-- Dark theme: `#030712` base, `slate-900/80` cards, `white/[0.06]` borders.
-- Glass morphism cards with subtle `border-white/[0.06]` and `bg-white/[0.02]` surfaces.
+- Dark theme: `#030712` base, `slate-900/80` cards, `white/[0.02]` surfaces.
+- Cards use `border-l-[3px]` colored accent (emerald/amber/slate based on status).
+- Hover effect uses `ring-1 ring-transparent hover:ring-white/[0.08]` (no border toggle — avoids layout shift).
 - Gradient accents: CTA buttons use `from-cyan-500 to-blue-500`.
-- Status colors: emerald = READY, amber = SOON, slate = COOLING.
-- Status badge is a clickable `rounded-lg` button with `cursor-pointer`, `active:scale-[0.97]` press feedback.
+- Status dropdown: colored `<select>` with emerald (Available), amber (Exhausted), cyan (Weekly Exhausted) states.
 - Typography: `tracking-tight` headings, `text-[13px]` body, uppercase micro-labels with `tracking-widest`.
 - Mesh gradient header with subtle radial gradients.
+- Select elements use custom CSS for dark theme (custom chevron, dark option backgrounds).
 
 ## Constraints
 
