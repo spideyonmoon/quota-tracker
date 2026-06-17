@@ -72,6 +72,10 @@ Fields:
 - `exhausted` — true when hourly quota is spent and cooldown is active
 - `weeklyExhausted` — true when weekly quota is spent and cooldown is active
 
+The editor form exposes two controls per cycle:
+- **Window** — the recurring cycle duration (e.g. "5 hours"). Stored in `hourlyCooldownMs`/`weeklyCooldownMs`.
+- **Next reset in** — time until the first reset (e.g. "2h 25m"). Stored in `hourlyResetTimestamp`/`weeklyResetTimestamp` as `now + offset`. After the first reset, the timer auto-restarts from the Window duration.
+
 A `quota-tracker.demo-seen` key prevents the demo instance from re-seeding after deletion.
 
 ## Behavior Notes
