@@ -31,24 +31,22 @@ export function InstanceEditorModal({
   const [weeklyAllowance, setWeeklyAllowance] = useState(
     instance?.weeklyAllowance ?? "",
   );
-  const hourlyParts = remainingParts(instance?.hourlyResetTimestamp ?? Date.now());
-  const weeklyParts = remainingParts(
-    instance?.weeklyResetTimestamp ?? Date.now(),
-  );
+  const hourlyCooldown = remainingParts(instance?.hourlyCooldownMs ?? 0);
+  const weeklyCooldown = remainingParts(instance?.weeklyCooldownMs ?? 0);
   const [hourlyHours, setHourlyHours] = useState(
-    instance ? String(hourlyParts.days * 24 + hourlyParts.hours) : "",
+    instance ? String(hourlyCooldown.days * 24 + hourlyCooldown.hours) : "",
   );
   const [hourlyMinutes, setHourlyMinutes] = useState(
-    instance ? String(hourlyParts.minutes) : "",
+    instance ? String(hourlyCooldown.minutes) : "",
   );
   const [weeklyDays, setWeeklyDays] = useState(
-    instance ? String(weeklyParts.days) : "",
+    instance ? String(weeklyCooldown.days) : "",
   );
   const [weeklyHours, setWeeklyHours] = useState(
-    instance ? String(weeklyParts.hours) : "",
+    instance ? String(weeklyCooldown.hours) : "",
   );
   const [weeklyMinutes, setWeeklyMinutes] = useState(
-    instance ? String(weeklyParts.minutes) : "",
+    instance ? String(weeklyCooldown.minutes) : "",
   );
   const [exhausted, setExhausted] = useState(instance?.exhausted ?? false);
   const [copied, setCopied] = useState(false);
@@ -63,18 +61,6 @@ export function InstanceEditorModal({
     } catch {
       setCopied(false);
     }
-  };
-
-  const applyHourlyPreset = (label: "+5 Hours" | "+24 Hours" | "+7 Days") => {
-    if (label === "+5 Hours") setHourlyHours(String((Number(hourlyHours) || 0) + 5));
-    if (label === "+24 Hours") setHourlyHours(String((Number(hourlyHours) || 0) + 24));
-    if (label === "+7 Days") setHourlyHours(String((Number(hourlyHours) || 0) + 168));
-  };
-
-  const applyWeeklyPreset = (label: "+5 Hours" | "+24 Hours" | "+7 Days") => {
-    if (label === "+5 Hours") setWeeklyHours(String((Number(weeklyHours) || 0) + 5));
-    if (label === "+24 Hours") setWeeklyHours(String((Number(weeklyHours) || 0) + 24));
-    if (label === "+7 Days") setWeeklyDays(String((Number(weeklyDays) || 0) + 7));
   };
 
   const validate = (): boolean => {
@@ -101,6 +87,8 @@ export function InstanceEditorModal({
     if (!validate()) return;
 
     const now = Date.now();
+    const hourlyMs = durationToMs(0, Math.max(Number(hourlyHours) || 0, 0), Math.max(Number(hourlyMinutes) || 0, 0));
+    const weeklyMs = durationToMs(Math.max(Number(weeklyDays) || 0, 0), Math.max(Number(weeklyHours) || 0, 0), Math.max(Number(weeklyMinutes) || 0, 0));
 
     onSubmit(
       {
@@ -110,11 +98,12 @@ export function InstanceEditorModal({
         configBlock: configBlock.trim(),
         hourlyAllowance: hourlyAllowance.trim() || "Quota",
         weeklyAllowance: weeklyAllowance.trim() || "Quota",
-        hourlyResetTimestamp:
-          now + durationToMs(0, Math.max(Number(hourlyHours) || 0, 0), Math.max(Number(hourlyMinutes) || 0, 0)),
-        weeklyResetTimestamp:
-          now + durationToMs(Math.max(Number(weeklyDays) || 0, 0), Math.max(Number(weeklyHours) || 0, 0), Math.max(Number(weeklyMinutes) || 0, 0)),
+        hourlyCooldownMs: hourlyMs,
+        weeklyCooldownMs: weeklyMs,
+        hourlyResetTimestamp: now + hourlyMs,
+        weeklyResetTimestamp: now + weeklyMs,
         exhausted: exhausted,
+        weeklyExhausted: false,
       },
       instance?.id,
     );
@@ -233,25 +222,12 @@ export function InstanceEditorModal({
             {errors.configBlock && <p className="mt-1.5 text-[11px] text-rose-400/80">{errors.configBlock}</p>}
           </div>
 
-          {/* Reset windows */}
+          {/* Cooldown windows */}
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            {/* Hourly reset */}
+            {/* Hourly cooldown */}
             <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-[13px] font-semibold text-white">Hourly Reset</p>
-                <div className="flex gap-1.5">
-                  {[["+5 Hours", "+5h"], ["+24 Hours", "+24h"], ["+7 Days", "+7d"]].map(([label, display]) => (
-                    <button
-                      key={label}
-                      type="button"
-                      onClick={() => applyHourlyPreset(label as "+5 Hours" | "+24 Hours" | "+7 Days")}
-                      className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-[11px] font-semibold text-slate-400 transition-all duration-200 hover:border-white/[0.15] hover:bg-white/[0.06] hover:text-white"
-                    >
-                      {display}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <p className="text-[13px] font-semibold text-white">Hourly Cooldown</p>
+              <p className="mt-0.5 text-[11px] text-slate-500">Auto-restarts after each cycle</p>
               <div className="mt-3 grid grid-cols-2 gap-3">
                 <label className="block">
                   <span className="text-[11px] text-slate-500">Hours</span>
@@ -260,7 +236,7 @@ export function InstanceEditorModal({
                     min="0"
                     value={hourlyHours}
                     onChange={(event) => setHourlyHours(event.target.value)}
-                    className="input-premium mt-1 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[13px] text-white outline-none transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05]"
+                    className="mt-1 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[13px] text-white outline-none transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05]"
                   />
                 </label>
                 <label className="block">
@@ -270,29 +246,16 @@ export function InstanceEditorModal({
                     min="0"
                     value={hourlyMinutes}
                     onChange={(event) => setHourlyMinutes(event.target.value)}
-                    className="input-premium mt-1 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[13px] text-white outline-none transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05]"
+                    className="mt-1 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[13px] text-white outline-none transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05]"
                   />
                 </label>
               </div>
             </div>
 
-            {/* Weekly reset */}
+            {/* Weekly cooldown */}
             <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-[13px] font-semibold text-white">Weekly Reset</p>
-                <div className="flex gap-1.5">
-                  {[["+5 Hours", "+5h"], ["+24 Hours", "+24h"], ["+7 Days", "+7d"]].map(([label, display]) => (
-                    <button
-                      key={label}
-                      type="button"
-                      onClick={() => applyWeeklyPreset(label as "+5 Hours" | "+24 Hours" | "+7 Days")}
-                      className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-[11px] font-semibold text-slate-400 transition-all duration-200 hover:border-white/[0.15] hover:bg-white/[0.06] hover:text-white"
-                    >
-                      {display}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <p className="text-[13px] font-semibold text-white">Weekly Cooldown</p>
+              <p className="mt-0.5 text-[11px] text-slate-500">Auto-restarts after each cycle</p>
               <div className="mt-3 grid grid-cols-3 gap-3">
                 <label className="block">
                   <span className="text-[11px] text-slate-500">Days</span>
@@ -301,7 +264,7 @@ export function InstanceEditorModal({
                     min="0"
                     value={weeklyDays}
                     onChange={(event) => setWeeklyDays(event.target.value)}
-                    className="input-premium mt-1 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[13px] text-white outline-none transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05]"
+                    className="mt-1 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[13px] text-white outline-none transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05]"
                   />
                 </label>
                 <label className="block">
@@ -311,7 +274,7 @@ export function InstanceEditorModal({
                     min="0"
                     value={weeklyHours}
                     onChange={(event) => setWeeklyHours(event.target.value)}
-                    className="input-premium mt-1 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[13px] text-white outline-none transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05]"
+                    className="mt-1 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[13px] text-white outline-none transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05]"
                   />
                 </label>
                 <label className="block">
@@ -321,7 +284,7 @@ export function InstanceEditorModal({
                     min="0"
                     value={weeklyMinutes}
                     onChange={(event) => setWeeklyMinutes(event.target.value)}
-                    className="input-premium mt-1 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[13px] text-white outline-none transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05]"
+                    className="mt-1 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[13px] text-white outline-none transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05]"
                   />
                 </label>
               </div>

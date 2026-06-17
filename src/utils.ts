@@ -1,4 +1,4 @@
-import type { Instance, InstanceStatus } from "./types";
+import type { Instance, InstanceStatus, QuotaFlag } from "./types";
 
 const THIRTY_MINUTES_MS = 30 * 60 * 1000;
 const MINUTE_MS = 60 * 1000;
@@ -61,6 +61,9 @@ export function sortInstances(instances: Instance[]): Instance[] {
     if (a.exhausted && !b.exhausted) return 1;
     if (!a.exhausted && b.exhausted) return -1;
 
+    if (a.weeklyExhausted && !b.weeklyExhausted) return 1;
+    if (!a.weeklyExhausted && b.weeklyExhausted) return -1;
+
     const aNearest = Math.min(
       Math.max(a.hourlyResetTimestamp - now, 0),
       Math.max(a.weeklyResetTimestamp - now, 0),
@@ -75,8 +78,25 @@ export function sortInstances(instances: Instance[]): Instance[] {
 }
 
 function normalizeInstance(instance: Instance): Instance {
-  const ready = calculateStatus(instance) === "READY";
-  return ready && instance.exhausted ? { ...instance, exhausted: false } : instance;
+  const now = Date.now();
+  let updated = { ...instance };
+
+  if (updated.hourlyResetTimestamp <= now && updated.hourlyCooldownMs > 0) {
+    updated.hourlyResetTimestamp = now + updated.hourlyCooldownMs;
+  }
+  if (updated.weeklyResetTimestamp <= now && updated.weeklyCooldownMs > 0) {
+    updated.weeklyResetTimestamp = now + updated.weeklyCooldownMs;
+  }
+
+  const ready = calculateStatus(updated) === "READY";
+  if (ready && updated.exhausted) {
+    updated = { ...updated, exhausted: false };
+  }
+  if (ready && updated.weeklyExhausted) {
+    updated = { ...updated, weeklyExhausted: false };
+  }
+
+  return updated;
 }
 
 export function normalizeInstances(instances: Instance[]): Instance[] {
@@ -109,10 +129,10 @@ export function statusStyles(status: InstanceStatus) {
   }
 }
 
-export function availabilityLabel(instance: Instance) {
-  return instance.exhausted && calculateStatus(instance) !== "READY"
-    ? "EXHAUSTED"
-    : "AVAILABLE";
+export function availabilityLabel(instance: Instance): QuotaFlag {
+  if (instance.exhausted && calculateStatus(instance) !== "READY") return "exhausted";
+  if (instance.weeklyExhausted && calculateStatus(instance) !== "READY") return "weekly_exhausted";
+  return "available";
 }
 
 export function durationFromMs(ms: number) {

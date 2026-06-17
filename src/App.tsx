@@ -12,9 +12,9 @@ export default function App() {
     addInstance,
     updateInstance,
     deleteInstance,
-    toggleExhausted,
+    setQuotaFlag,
     duplicateInstance,
-    markAllAvailable,
+    renewExpired,
     exportInstances,
     importInstances,
   } = useInstances();
@@ -34,6 +34,7 @@ export default function App() {
   useEffect(() => {
     const timer = window.setInterval(() => {
       setMinuteTick((tick) => tick + 1);
+      renewExpired();
     }, 60_000);
 
     return () => window.clearInterval(timer);
@@ -44,8 +45,6 @@ export default function App() {
     () => filterInstances(sortedInstances, searchQuery),
     [sortedInstances, searchQuery],
   );
-
-  const hasExhausted = instances.some((i) => i.exhausted);
 
   const handleExport = async () => {
     const json = exportInstances();
@@ -122,17 +121,6 @@ export default function App() {
                 <span className="text-xs font-medium uppercase tracking-widest text-slate-500">Tracked</span>
                 <span className="text-sm font-bold text-white">{instances.length}</span>
               </div>
-
-              {/* Mark All Available */}
-              {hasExhausted && (
-                <button
-                  type="button"
-                  onClick={markAllAvailable}
-                  className="inline-flex min-h-10 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/[0.08] px-4 py-2 text-[13px] font-semibold text-emerald-300 transition-all duration-200 hover:border-emerald-500/30 hover:bg-emerald-500/15"
-                >
-                  Reset All
-                </button>
-              )}
 
               {/* Import */}
               <button
@@ -224,8 +212,8 @@ export default function App() {
                 instance={instance}
                 onEdit={(item) => setEditorState({ mode: "edit", instance: item })}
                 onDelete={(id) => setDeleteTarget(id)}
-                onToggleExhausted={toggleExhausted}
                 onDuplicate={duplicateInstance}
+                onSetQuotaFlag={setQuotaFlag}
               />
             ))
           ) : instances.length > 0 && searchQuery ? (

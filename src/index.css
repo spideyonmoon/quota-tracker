@@ -46,4 +46,9 @@ select {
 select option {
   background: #0f172a;
   color: #e2e8f0;
+  padding: 8px 12px;
+}
+
+select:hover {
+  filter: brightness(1.1);
 }

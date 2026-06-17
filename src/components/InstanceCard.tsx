@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Instance } from "../types";
+import type { Instance, QuotaFlag } from "../types";
 import {
   calculateStatus,
   formatTimeRemaining,
@@ -13,23 +13,49 @@ interface InstanceCardProps {
   instance: Instance;
   onEdit: (instance: Instance) => void;
   onDelete: (id: string) => void;
-  onToggleExhausted: (id: string) => void;
   onDuplicate: (id: string) => void;
+  onSetQuotaFlag: (id: string, flag: QuotaFlag) => void;
 }
+
+const flagStyles: Record<QuotaFlag, { bg: string; text: string; border: string; ring: string }> = {
+  available: {
+    bg: "bg-emerald-500/15",
+    text: "text-emerald-300",
+    border: "border-emerald-500/30",
+    ring: "ring-emerald-500/20",
+  },
+  exhausted: {
+    bg: "bg-amber-500/15",
+    text: "text-amber-300",
+    border: "border-amber-500/30",
+    ring: "ring-amber-500/20",
+  },
+  weekly_exhausted: {
+    bg: "bg-cyan-500/15",
+    text: "text-cyan-300",
+    border: "border-cyan-500/30",
+    ring: "ring-cyan-500/20",
+  },
+};
+
+const flagLabels: Record<QuotaFlag, string> = {
+  available: "Available",
+  exhausted: "Exhausted",
+  weekly_exhausted: "Weekly Exhausted",
+};
 
 export function InstanceCard({
   instance,
   onEdit,
   onDelete,
-  onToggleExhausted,
   onDuplicate,
+  onSetQuotaFlag,
 }: InstanceCardProps) {
   const [copied, setCopied] = useState(false);
   const status = calculateStatus(instance);
   const styles = statusStyles(status);
-  const available = availabilityLabel(instance);
-  const isReady = status === "READY";
-  const isExhausted = available === "EXHAUSTED";
+  const flag = availabilityLabel(instance);
+  const fs = flagStyles[flag];
 
   const handleCopy = async () => {
     try {
@@ -43,7 +69,7 @@ export function InstanceCard({
 
   return (
     <article
-      className={`relative rounded-2xl border border-transparent border-l-[3px] ${styles.border} bg-slate-900/80 p-5 shadow-lg shadow-black/20 transition-all duration-150 hover:border-white/[0.1] hover:shadow-xl hover:shadow-black/30`}
+      className={`group relative rounded-2xl border-l-[3px] ${styles.border} bg-slate-900/80 p-5 shadow-lg shadow-black/20 transition-all duration-150 ring-1 ring-transparent hover:ring-white/[0.08] hover:shadow-xl hover:shadow-black/30`}
     >
       <div className="flex flex-col gap-4">
         {/* Header row */}
@@ -66,19 +92,20 @@ export function InstanceCard({
               </p>
             ) : null}
           </div>
-          <button
-            type="button"
-            onClick={() => onToggleExhausted(instance.id)}
-            className={`shrink-0 cursor-pointer rounded-lg border px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-all duration-150 hover:scale-[1.03] active:scale-[0.97] ${
-              isExhausted
-                ? "border-amber-500/30 bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 hover:border-amber-500/40"
-                : isReady
-                  ? "border-emerald-500/30 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 hover:border-emerald-500/40"
-                  : "border-cyan-500/30 bg-cyan-500/15 text-cyan-300 hover:bg-cyan-500/25 hover:border-cyan-500/40"
-            }`}
-          >
-            {available}
-          </button>
+          <div className="relative shrink-0">
+            <select
+              value={flag}
+              onChange={(event) => onSetQuotaFlag(instance.id, event.target.value as QuotaFlag)}
+              className={`appearance-none cursor-pointer rounded-lg border ${fs.border} ${fs.bg} ${fs.text} px-3 py-1.5 pr-7 text-[11px] font-bold uppercase tracking-wider outline-none transition-all duration-200 hover:brightness-110 focus:ring-2 ${fs.ring}`}
+            >
+              <option value="available">Available</option>
+              <option value="exhausted">Exhausted</option>
+              <option value="weekly_exhausted">Weekly Exhausted</option>
+            </select>
+            <svg className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-current opacity-60" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path d="M3 4.5l3 3 3-3" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
         </div>
 
         {/* Quota boxes */}

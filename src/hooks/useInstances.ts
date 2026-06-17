@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Instance } from "../types";
 import { createId, normalizeInstances } from "../utils";
+import type { QuotaFlag } from "../types";
 
 const STORAGE_KEY = "quota-tracker.instances";
 const DEMO_SEEN_KEY = "quota-tracker.demo-seen";
@@ -18,9 +19,12 @@ function makeDemoInstance(): Instance {
       'OPENAI_API_KEY="sk-demo-xxxxxxxxxxxx"\nBASE_URL="https://api.openai.com/v1"',
     hourlyAllowance: "500 RPM",
     weeklyAllowance: "10M tokens",
+    hourlyCooldownMs: 60 * 60 * 1000,
+    weeklyCooldownMs: 7 * 24 * 60 * 60 * 1000,
     hourlyResetTimestamp: now - 10 * 60 * 1000,
     weeklyResetTimestamp: now - 2 * HOUR_MS,
     exhausted: false,
+    weeklyExhausted: false,
   };
 }
 
@@ -72,7 +76,7 @@ export function useInstances() {
   const addInstance = (instance: Omit<Instance, "id">) => {
     persist((current) => [
       ...current,
-      { ...instance, id: createId(), exhausted: false },
+      { ...instance, id: createId(), exhausted: false, weeklyExhausted: false },
     ]);
   };
 
@@ -88,13 +92,25 @@ export function useInstances() {
     persist((current) => current.filter((instance) => instance.id !== id));
   };
 
-  const toggleExhausted = (id: string) => {
+  const setQuotaFlag = (id: string, flag: QuotaFlag) => {
+    const now = Date.now();
     persist((current) =>
-      current.map((instance) =>
-        instance.id === id
-          ? { ...instance, exhausted: !instance.exhausted }
-          : instance,
-      ),
+      current.map((instance) => {
+        if (instance.id !== id) return instance;
+        return {
+          ...instance,
+          exhausted: flag === "exhausted",
+          weeklyExhausted: flag === "weekly_exhausted",
+          hourlyResetTimestamp:
+            flag === "exhausted"
+              ? now + instance.hourlyCooldownMs
+              : instance.hourlyResetTimestamp,
+          weeklyResetTimestamp:
+            flag === "weekly_exhausted"
+              ? now + instance.weeklyCooldownMs
+              : instance.weeklyResetTimestamp,
+        };
+      }),
     );
   };
 
@@ -107,15 +123,14 @@ export function useInstances() {
         id: createId(),
         name: `${source.name} (copy)`,
         exhausted: false,
+        weeklyExhausted: false,
       };
       return [...current, clone];
     });
   };
 
-  const markAllAvailable = () => {
-    persist((current) =>
-      current.map((instance) => ({ ...instance, exhausted: false })),
-    );
+  const renewExpired = () => {
+    persist((current) => normalizeInstances(current));
   };
 
   const exportInstances = (): string => {
@@ -140,9 +155,9 @@ export function useInstances() {
     addInstance,
     updateInstance,
     deleteInstance,
-    toggleExhausted,
+    setQuotaFlag,
     duplicateInstance,
-    markAllAvailable,
+    renewExpired,
     exportInstances,
     importInstances,
   };
