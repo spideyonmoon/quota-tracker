@@ -112,7 +112,15 @@ export default function App() {
                 </h1>
               </div>
               <p className="mt-2.5 text-[13px] leading-relaxed text-slate-500">
-                Track third-party API quota windows across accounts.
+                Track third-party API quota windows across accounts.{" "}
+                <a
+                  href="https://github.com/spideyonmoon/quota-tracker"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-slate-600 transition-colors hover:text-slate-400"
+                >
+                  Source on GitHub
+                </a>
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2.5">
