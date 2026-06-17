@@ -119,7 +119,7 @@ export default function App() {
             <div className="flex flex-wrap items-center gap-2.5">
               {/* Instance count */}
               <div className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-2">
-                <span className="text-[11px] font-medium uppercase tracking-widest text-slate-500">Tracked</span>
+                <span className="text-xs font-medium uppercase tracking-widest text-slate-500">Tracked</span>
                 <span className="text-sm font-bold text-white">{instances.length}</span>
               </div>
 

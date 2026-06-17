@@ -1,8 +1,28 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Instance } from "../types";
 import { createId, normalizeInstances } from "../utils";
 
 const STORAGE_KEY = "quota-tracker.instances";
+const DEMO_SEEN_KEY = "quota-tracker.demo-seen";
+
+const HOUR_MS = 60 * 60 * 1000;
+
+function makeDemoInstance(): Instance {
+  const now = Date.now();
+  return {
+    id: "demo-openai-gpt4",
+    name: "OpenAI GPT-4o",
+    website: "https://platform.openai.com",
+    accountLabel: "demo@openai.com",
+    configBlock:
+      'OPENAI_API_KEY="sk-demo-xxxxxxxxxxxx"\nBASE_URL="https://api.openai.com/v1"',
+    hourlyAllowance: "500 RPM",
+    weeklyAllowance: "10M tokens",
+    hourlyResetTimestamp: now - 10 * 60 * 1000,
+    weeklyResetTimestamp: now - 2 * HOUR_MS,
+    exhausted: false,
+  };
+}
 
 function readStoredInstances(): Instance[] {
   if (typeof window === "undefined") return [];
@@ -22,6 +42,24 @@ function readStoredInstances(): Instance[] {
 
 export function useInstances() {
   const [instances, setInstances] = useState<Instance[]>(readStoredInstances);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (instances.length > 0) return;
+
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return;
+      if (localStorage.getItem(DEMO_SEEN_KEY)) return;
+
+      const demo = makeDemoInstance();
+      localStorage.setItem(DEMO_SEEN_KEY, "1");
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([demo]));
+      setInstances([demo]);
+    } catch {
+      // localStorage may be unavailable
+    }
+  }, []);
 
   const persist = (updater: (current: Instance[]) => Instance[]) => {
     setInstances((current) => {

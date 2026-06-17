@@ -43,7 +43,7 @@ export function InstanceCard({
 
   return (
     <article
-      className={`relative rounded-2xl border border-white/[0.06] border-l-[3px] ${styles.border} bg-slate-900/80 p-5 shadow-lg shadow-black/20 transition-all duration-150 hover:border-white/[0.1] hover:shadow-xl hover:shadow-black/30`}
+      className={`relative rounded-2xl border border-transparent border-l-[3px] ${styles.border} bg-slate-900/80 p-5 shadow-lg shadow-black/20 transition-all duration-150 hover:border-white/[0.1] hover:shadow-xl hover:shadow-black/30`}
     >
       <div className="flex flex-col gap-4">
         {/* Header row */}
@@ -85,44 +85,44 @@ export function InstanceCard({
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
           <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-3.5">
             <div className="flex items-center justify-between">
-              <p className="text-[10px] font-medium uppercase tracking-widest text-slate-500">
+              <p className="text-[11px] font-medium uppercase tracking-widest text-slate-500">
                 Hourly
               </p>
-              <p className="text-[11px] font-medium text-slate-400">
+              <p className="text-xs font-medium text-slate-400">
                 {instance.hourlyAllowance}
               </p>
             </div>
             <p className="mt-2 text-2xl font-bold tracking-tight text-white">
               {formatTimeRemaining(instance.hourlyResetTimestamp)}
             </p>
-            <p className="mt-1 text-[11px] text-slate-600">
+            <p className="mt-1 text-xs text-slate-600">
               {durationToLabel(remainingParts(instance.hourlyResetTimestamp))}
             </p>
           </div>
           <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-3.5">
             <div className="flex items-center justify-between">
-              <p className="text-[10px] font-medium uppercase tracking-widest text-slate-500">
+              <p className="text-[11px] font-medium uppercase tracking-widest text-slate-500">
                 Weekly
               </p>
-              <p className="text-[11px] font-medium text-slate-400">
+              <p className="text-xs font-medium text-slate-400">
                 {instance.weeklyAllowance}
               </p>
             </div>
             <p className="mt-2 text-2xl font-bold tracking-tight text-white">
               {formatTimeRemaining(instance.weeklyResetTimestamp)}
             </p>
-            <p className="mt-1 text-[11px] text-slate-600">
+            <p className="mt-1 text-xs text-slate-600">
               {durationToLabel(remainingParts(instance.weeklyResetTimestamp))}
             </p>
           </div>
         </div>
 
         {/* Action buttons */}
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           <button
             type="button"
             onClick={handleCopy}
-            className={`min-h-10 flex-1 rounded-xl px-4 py-2 text-[13px] font-semibold tracking-wide transition-all duration-200 ${styles.button}`}
+            className={`min-h-10 rounded-xl px-4 py-2 text-[13px] font-semibold tracking-wide transition-all duration-200 ${styles.button}`}
           >
             {copied ? "Copied!" : "Use"}
           </button>

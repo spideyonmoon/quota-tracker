@@ -2,11 +2,16 @@
 
 html {
   background: #030712;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
 }
 
 body {
   margin: 0;
   min-width: 320px;
+  touch-action: manipulation;
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
 }
 
 ::-webkit-scrollbar {
