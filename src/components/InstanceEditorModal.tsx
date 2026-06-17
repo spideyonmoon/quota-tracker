@@ -50,6 +50,7 @@ export function InstanceEditorModal({
   const [weeklyMinutes, setWeeklyMinutes] = useState(
     instance ? String(weeklyParts.minutes) : "",
   );
+  const [exhausted, setExhausted] = useState(instance?.exhausted ?? false);
   const [copied, setCopied] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
 
@@ -113,7 +114,7 @@ export function InstanceEditorModal({
           now + durationToMs(0, Math.max(Number(hourlyHours) || 0, 0), Math.max(Number(hourlyMinutes) || 0, 0)),
         weeklyResetTimestamp:
           now + durationToMs(Math.max(Number(weeklyDays) || 0, 0), Math.max(Number(weeklyHours) || 0, 0), Math.max(Number(weeklyMinutes) || 0, 0)),
-        exhausted: instance?.exhausted ?? false,
+        exhausted: exhausted,
       },
       instance?.id,
     );
@@ -183,6 +184,17 @@ export function InstanceEditorModal({
                 placeholder="Optional"
                 className={inputClass(false)}
               />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-widest text-slate-500">Availability</label>
+              <select
+                value={exhausted ? "exhausted" : "available"}
+                onChange={(event) => setExhausted(event.target.value === "exhausted")}
+                className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-[13px] text-white outline-none transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05] focus:shadow-[0_0_0_1px_rgba(34,211,238,0.15)]"
+              >
+                <option value="available">Available</option>
+                <option value="exhausted">Exhausted</option>
+              </select>
             </div>
             <div>
               <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-widest text-slate-500">Hourly Allowance</label>

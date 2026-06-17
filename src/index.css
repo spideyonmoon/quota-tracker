@@ -34,3 +34,16 @@ body {
     radial-gradient(ellipse 60% 40% at 80% 20%, rgba(99, 102, 241, 0.04), transparent),
     radial-gradient(ellipse 50% 60% at 50% 80%, rgba(16, 185, 129, 0.03), transparent);
 }
+
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M2.5 4.5l3.5 3.5 3.5-3.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  appearance: none;
+  padding-right: 2.5rem;
+}
+
+select option {
+  background: #0f172a;
+  color: #e2e8f0;
+}
