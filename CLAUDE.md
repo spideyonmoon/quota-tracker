@@ -31,7 +31,7 @@ Use `npm run build` before committing meaningful changes.
 src/
   main.tsx              # React entry point
   App.tsx               # Root component, layout, header, search, import/export
-  index.css             # Tailwind import, base styles, mesh gradient, select styling
+  index.css             # Tailwind import, base styles, mesh gradient, number spinner reset
   types.ts              # Instance, InstanceStatus, QuotaFlag types
   utils.ts              # Status logic, sorting, filtering, time formatting, durations
   hooks/
@@ -40,6 +40,7 @@ src/
     InstanceCard.tsx     # Individual instance display with status dropdown and actions
     InstanceEditorModal.tsx  # Add/edit form with cooldown duration fields
     ConfirmDialog.tsx    # Delete confirmation dialog
+    CustomDropdown.tsx   # Reusable custom dropdown with colored options
 ```
 
 ## Important Files
@@ -64,7 +65,7 @@ Fields:
 - `configBlock`
 - `hourlyAllowance` — display label for the hourly quota (e.g. "100 RPM")
 - `weeklyAllowance` — display label for the weekly quota (e.g. "10K requests")
-- `hourlyCooldownMs` — duration in ms of the hourly cooldown cycle
+- `hourlyCooldownMs` — duration in ms of the hourly cooldown cycle (the "x-hourly" reset window)
 - `weeklyCooldownMs` — duration in ms of the weekly cooldown cycle
 - `hourlyResetTimestamp` — epoch ms for hourly window reset (auto-restarts from cooldown)
 - `weeklyResetTimestamp` — epoch ms for weekly window reset (auto-restarts from cooldown)
@@ -78,9 +79,9 @@ A `quota-tracker.demo-seen` key prevents the demo instance from re-seeding after
 - Countdown values are calculated from absolute epoch timestamps.
 - The app re-renders every 60 seconds so countdown text updates.
 - **Auto-restart cooldowns**: when a timer expires, it automatically restarts from the cooldown duration. The app never stays in "Ready" — it cycles indefinitely.
-- **Status dropdown**: each card has a dropdown (`<select>`) with three states — Available (emerald), Exhausted (amber), Weekly Exhausted (cyan). Selecting Exhausted/Weekly Exhausted sets the flag and starts the corresponding cooldown timer.
+- **Status dropdown**: each card has a custom dropdown with three states — Available (emerald), Exhausted (amber), Weekly Exhausted (red/rose). Selecting Exhausted/Weekly Exhausted sets the flag and starts the corresponding cooldown timer.
 - When a cooldown expires, `exhausted`/`weeklyExhausted` flags are cleared automatically by `normalizeInstance`.
-- Sorting order: READY instances first, then available instances by nearest reset, exhausted instances last.
+- Sorting order: READY instances first, then Available > Exhausted > Weekly Exhausted, then by nearest reset.
 - The `Use` button copies `configBlock` to the clipboard.
 - Search filters by name, website, account label, or allowance labels.
 - Export copies JSON to clipboard or downloads as `.json` file.
@@ -123,7 +124,7 @@ GitHub Pages settings should be:
 - No `backdrop-blur` on any element (GPU-heavy, slow on mobile).
 - No CSS keyframe animations — only `transition-all duration-150` on hover states.
 - No gradient overlay divs on cards — keeps DOM minimal.
-- CSS is ~36KB (7KB gzipped). JS is ~223KB (67KB gzipped).
+- CSS is ~36KB (6KB gzipped). JS is ~224KB (68KB gzipped).
 
 ## Design Language
 
@@ -131,10 +132,10 @@ GitHub Pages settings should be:
 - Cards use `border-l-[3px]` colored accent (emerald/amber/slate based on status).
 - Hover effect uses `ring-1 ring-transparent hover:ring-white/[0.08]` (no border toggle — avoids layout shift).
 - Gradient accents: CTA buttons use `from-cyan-500 to-blue-500`.
-- Status dropdown: colored `<select>` with emerald (Available), amber (Exhausted), cyan (Weekly Exhausted) states.
+- Status dropdown: custom component (`CustomDropdown.tsx`) with colored dot indicator, emerald (Available), amber (Exhausted), rose (Weekly Exhausted).
 - Typography: `tracking-tight` headings, `text-[13px]` body, uppercase micro-labels with `tracking-widest`.
 - Mesh gradient header with subtle radial gradients.
-- Select elements use custom CSS for dark theme (custom chevron, dark option backgrounds).
+- Number inputs have spinner buttons hidden via CSS (`::-webkit-inner-spin-button`).
 
 ## Constraints
 

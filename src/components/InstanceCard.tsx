@@ -8,6 +8,7 @@ import {
   durationToLabel,
   remainingParts,
 } from "../utils";
+import { CustomDropdown } from "./CustomDropdown";
 
 interface InstanceCardProps {
   instance: Instance;
@@ -17,31 +18,31 @@ interface InstanceCardProps {
   onSetQuotaFlag: (id: string, flag: QuotaFlag) => void;
 }
 
-const flagStyles: Record<QuotaFlag, { bg: string; text: string; border: string; ring: string }> = {
+const flagOptions: { value: QuotaFlag; label: string }[] = [
+  { value: "available", label: "Available" },
+  { value: "exhausted", label: "Exhausted" },
+  { value: "weekly_exhausted", label: "Weekly Exhausted" },
+];
+
+const flagColors: Record<QuotaFlag, { bg: string; text: string; border: string; dot: string }> = {
   available: {
     bg: "bg-emerald-500/15",
     text: "text-emerald-300",
     border: "border-emerald-500/30",
-    ring: "ring-emerald-500/20",
+    dot: "bg-emerald-400",
   },
   exhausted: {
     bg: "bg-amber-500/15",
     text: "text-amber-300",
     border: "border-amber-500/30",
-    ring: "ring-amber-500/20",
+    dot: "bg-amber-400",
   },
   weekly_exhausted: {
-    bg: "bg-cyan-500/15",
-    text: "text-cyan-300",
-    border: "border-cyan-500/30",
-    ring: "ring-cyan-500/20",
+    bg: "bg-rose-500/15",
+    text: "text-rose-300",
+    border: "border-rose-500/30",
+    dot: "bg-rose-400",
   },
-};
-
-const flagLabels: Record<QuotaFlag, string> = {
-  available: "Available",
-  exhausted: "Exhausted",
-  weekly_exhausted: "Weekly Exhausted",
 };
 
 export function InstanceCard({
@@ -55,7 +56,6 @@ export function InstanceCard({
   const status = calculateStatus(instance);
   const styles = statusStyles(status);
   const flag = availabilityLabel(instance);
-  const fs = flagStyles[flag];
 
   const handleCopy = async () => {
     try {
@@ -92,20 +92,12 @@ export function InstanceCard({
               </p>
             ) : null}
           </div>
-          <div className="relative shrink-0">
-            <select
-              value={flag}
-              onChange={(event) => onSetQuotaFlag(instance.id, event.target.value as QuotaFlag)}
-              className={`appearance-none cursor-pointer rounded-lg border ${fs.border} ${fs.bg} ${fs.text} px-3 py-1.5 pr-7 text-[11px] font-bold uppercase tracking-wider outline-none transition-all duration-200 hover:brightness-110 focus:ring-2 ${fs.ring}`}
-            >
-              <option value="available">Available</option>
-              <option value="exhausted">Exhausted</option>
-              <option value="weekly_exhausted">Weekly Exhausted</option>
-            </select>
-            <svg className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-current opacity-60" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth={2}>
-              <path d="M3 4.5l3 3 3-3" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
+          <CustomDropdown
+            value={flag}
+            options={flagOptions}
+            onChange={(v) => onSetQuotaFlag(instance.id, v)}
+            colorMap={flagColors}
+          />
         </div>
 
         {/* Quota boxes */}

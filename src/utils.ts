@@ -51,6 +51,12 @@ export function formatTimeRemaining(targetTimestamp: number): string {
 export function sortInstances(instances: Instance[]): Instance[] {
   const now = Date.now();
 
+  const flagRank: Record<QuotaFlag, number> = {
+    available: 0,
+    exhausted: 1,
+    weekly_exhausted: 2,
+  };
+
   return [...instances].sort((a, b) => {
     const aStatus = calculateStatus(a);
     const bStatus = calculateStatus(b);
@@ -58,11 +64,9 @@ export function sortInstances(instances: Instance[]): Instance[] {
     if (aStatus === "READY" && bStatus !== "READY") return -1;
     if (aStatus !== "READY" && bStatus === "READY") return 1;
 
-    if (a.exhausted && !b.exhausted) return 1;
-    if (!a.exhausted && b.exhausted) return -1;
-
-    if (a.weeklyExhausted && !b.weeklyExhausted) return 1;
-    if (!a.weeklyExhausted && b.weeklyExhausted) return -1;
+    const aFlag = flagRank[availabilityLabel(a)];
+    const bFlag = flagRank[availabilityLabel(b)];
+    if (aFlag !== bFlag) return aFlag - bFlag;
 
     const aNearest = Math.min(
       Math.max(a.hourlyResetTimestamp - now, 0),

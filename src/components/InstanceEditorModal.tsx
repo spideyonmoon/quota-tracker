@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
-import type { Instance } from "../types";
+import type { Instance, QuotaFlag } from "../types";
 import { durationToMs, remainingParts } from "../utils";
+import { CustomDropdown } from "./CustomDropdown";
 
 interface FieldErrors {
   name?: string;
@@ -13,6 +14,25 @@ interface InstanceEditorModalProps {
   instance: Instance | null;
   onClose: () => void;
   onSubmit: (payload: Omit<Instance, "id">, existingId?: string) => void;
+}
+
+const availabilityOptions: { value: QuotaFlag; label: string }[] = [
+  { value: "available", label: "Available" },
+  { value: "exhausted", label: "Exhausted" },
+  { value: "weekly_exhausted", label: "Weekly Exhausted" },
+];
+
+const availabilityColors: Record<QuotaFlag, { bg: string; text: string; border: string; dot: string }> = {
+  available: { bg: "bg-emerald-500/15", text: "text-emerald-300", border: "border-emerald-500/30", dot: "bg-emerald-400" },
+  exhausted: { bg: "bg-amber-500/15", text: "text-amber-300", border: "border-amber-500/30", dot: "bg-amber-400" },
+  weekly_exhausted: { bg: "bg-rose-500/15", text: "text-rose-300", border: "border-rose-500/30", dot: "bg-rose-400" },
+};
+
+function getAvailabilityFlag(instance: Instance | null): QuotaFlag {
+  if (!instance) return "available";
+  if (instance.exhausted) return "exhausted";
+  if (instance.weeklyExhausted) return "weekly_exhausted";
+  return "available";
 }
 
 export function InstanceEditorModal({
@@ -48,7 +68,7 @@ export function InstanceEditorModal({
   const [weeklyMinutes, setWeeklyMinutes] = useState(
     instance ? String(weeklyCooldown.minutes) : "",
   );
-  const [exhausted, setExhausted] = useState(instance?.exhausted ?? false);
+  const [availability, setAvailability] = useState<QuotaFlag>(getAvailabilityFlag(instance));
   const [copied, setCopied] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
 
@@ -102,8 +122,8 @@ export function InstanceEditorModal({
         weeklyCooldownMs: weeklyMs,
         hourlyResetTimestamp: now + hourlyMs,
         weeklyResetTimestamp: now + weeklyMs,
-        exhausted: exhausted,
-        weeklyExhausted: false,
+        exhausted: availability === "exhausted",
+        weeklyExhausted: availability === "weekly_exhausted",
       },
       instance?.id,
     );
@@ -116,6 +136,9 @@ export function InstanceEditorModal({
         ? "border-rose-500/40 focus:border-rose-400/60 focus:shadow-[0_0_0_1px_rgba(244,63,94,0.2)]"
         : "border-white/[0.08] focus:border-cyan-400/40 focus:bg-white/[0.05] focus:shadow-[0_0_0_1px_rgba(34,211,238,0.15)]"
     }`;
+
+  const numberClass =
+    "w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[13px] text-white outline-none transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05]";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
@@ -176,14 +199,12 @@ export function InstanceEditorModal({
             </div>
             <div>
               <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-widest text-slate-500">Availability</label>
-              <select
-                value={exhausted ? "exhausted" : "available"}
-                onChange={(event) => setExhausted(event.target.value === "exhausted")}
-                className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-[13px] text-white outline-none transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05] focus:shadow-[0_0_0_1px_rgba(34,211,238,0.15)]"
-              >
-                <option value="available">Available</option>
-                <option value="exhausted">Exhausted</option>
-              </select>
+              <CustomDropdown
+                value={availability}
+                options={availabilityOptions}
+                onChange={setAvailability}
+                colorMap={availabilityColors}
+              />
             </div>
             <div>
               <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-widest text-slate-500">Hourly Allowance</label>
@@ -222,12 +243,12 @@ export function InstanceEditorModal({
             {errors.configBlock && <p className="mt-1.5 text-[11px] text-rose-400/80">{errors.configBlock}</p>}
           </div>
 
-          {/* Cooldown windows */}
+          {/* Reset windows */}
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            {/* Hourly cooldown */}
+            {/* Hourly reset window */}
             <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-              <p className="text-[13px] font-semibold text-white">Hourly Cooldown</p>
-              <p className="mt-0.5 text-[11px] text-slate-500">Auto-restarts after each cycle</p>
+              <p className="text-[13px] font-semibold text-white">Hourly Reset Window</p>
+              <p className="mt-0.5 text-[11px] text-slate-500">How often the hourly quota resets (e.g. 3h, 5h, 6h)</p>
               <div className="mt-3 grid grid-cols-2 gap-3">
                 <label className="block">
                   <span className="text-[11px] text-slate-500">Hours</span>
@@ -236,7 +257,8 @@ export function InstanceEditorModal({
                     min="0"
                     value={hourlyHours}
                     onChange={(event) => setHourlyHours(event.target.value)}
-                    className="mt-1 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[13px] text-white outline-none transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05]"
+                    placeholder="e.g. 5"
+                    className={`mt-1 ${numberClass}`}
                   />
                 </label>
                 <label className="block">
@@ -246,16 +268,17 @@ export function InstanceEditorModal({
                     min="0"
                     value={hourlyMinutes}
                     onChange={(event) => setHourlyMinutes(event.target.value)}
-                    className="mt-1 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[13px] text-white outline-none transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05]"
+                    placeholder="0"
+                    className={`mt-1 ${numberClass}`}
                   />
                 </label>
               </div>
             </div>
 
-            {/* Weekly cooldown */}
+            {/* Weekly reset window */}
             <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-              <p className="text-[13px] font-semibold text-white">Weekly Cooldown</p>
-              <p className="mt-0.5 text-[11px] text-slate-500">Auto-restarts after each cycle</p>
+              <p className="text-[13px] font-semibold text-white">Weekly Reset Window</p>
+              <p className="mt-0.5 text-[11px] text-slate-500">How often the weekly quota resets</p>
               <div className="mt-3 grid grid-cols-3 gap-3">
                 <label className="block">
                   <span className="text-[11px] text-slate-500">Days</span>
@@ -264,7 +287,8 @@ export function InstanceEditorModal({
                     min="0"
                     value={weeklyDays}
                     onChange={(event) => setWeeklyDays(event.target.value)}
-                    className="mt-1 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[13px] text-white outline-none transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05]"
+                    placeholder="7"
+                    className={`mt-1 ${numberClass}`}
                   />
                 </label>
                 <label className="block">
@@ -274,7 +298,8 @@ export function InstanceEditorModal({
                     min="0"
                     value={weeklyHours}
                     onChange={(event) => setWeeklyHours(event.target.value)}
-                    className="mt-1 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[13px] text-white outline-none transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05]"
+                    placeholder="0"
+                    className={`mt-1 ${numberClass}`}
                   />
                 </label>
                 <label className="block">
@@ -284,7 +309,8 @@ export function InstanceEditorModal({
                     min="0"
                     value={weeklyMinutes}
                     onChange={(event) => setWeeklyMinutes(event.target.value)}
-                    className="mt-1 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[13px] text-white outline-none transition-all duration-200 focus:border-cyan-400/40 focus:bg-white/[0.05]"
+                    placeholder="0"
+                    className={`mt-1 ${numberClass}`}
                   />
                 </label>
               </div>
