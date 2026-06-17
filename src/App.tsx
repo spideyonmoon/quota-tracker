@@ -102,8 +102,10 @@ export default function App() {
             <div className="max-w-2xl">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 shadow-lg shadow-cyan-500/20">
-                  <svg className="h-4.5 w-4.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  <svg className="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2a10 10 0 1 0 10 10" />
+                    <path d="M12 12l5-5" />
+                    <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
                   </svg>
                 </div>
                 <h1 className="text-2xl font-bold tracking-tight text-white">
@@ -116,13 +118,9 @@ export default function App() {
             </div>
             <div className="flex flex-wrap items-center gap-2.5">
               {/* Instance count */}
-              <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-2.5">
-                <p className="text-[10px] font-medium uppercase tracking-widest text-slate-500">
-                  Tracked
-                </p>
-                <p className="mt-0.5 text-sm font-bold text-white">
-                  {instances.length}
-                </p>
+              <div className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-2">
+                <span className="text-[11px] font-medium uppercase tracking-widest text-slate-500">Tracked</span>
+                <span className="text-sm font-bold text-white">{instances.length}</span>
               </div>
 
               {/* Mark All Available */}
